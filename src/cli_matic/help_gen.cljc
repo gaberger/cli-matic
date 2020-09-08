@@ -33,13 +33,13 @@
   [name version usage commands opts-title opts examples]
 
   (vec
-   (flatten
-    [(generate-section "NAME" name)
-     (generate-section "USAGE" usage)
-     (generate-section "EXAMPLES" examples)
-     (generate-section "VERSION" version)
-     (generate-section "COMMANDS" commands)
-     (generate-section opts-title opts)])))
+    (flatten
+      [(generate-section "NAME" name)
+       (generate-section "USAGE" usage)
+       (generate-section "EXAMPLES" examples)
+       (generate-section "VERSION" version)
+       (generate-section "COMMANDS" commands)
+       (generate-section opts-title opts)])))
 
 (defn- expand-multiline-parts
   "Expands multilines within parts so that they can be
@@ -85,8 +85,8 @@
   [cfg subcmd]
   (let [cli-cfg (U2/rewrite-opts cfg subcmd)
         options-str (:summary
-                     (cli/parse-opts [] cli-cfg
-                                     :summary-fn summarize-for-tools-cli))]
+                      (cli/parse-opts [] cli-cfg
+                                      :summary-fn summarize-for-tools-cli))]
     (str/split-lines options-str)))
 
 (s/fdef
@@ -120,6 +120,7 @@
   [{:keys [command short description]}]
 
   (let [[des0 _] (get-first-rest-description-rows description)]
+    ;(clojure.pprint/cl-format nil "~A~10,10T~A" command description)
     (str "  "
          (U/pad command short 20)
          " "
@@ -130,12 +131,20 @@
    Commands are of kind ::S/commands
   "
   [commands]
-  (map generate-a-command commands))
+  (let [padding (or (last (sort (mapv #(count (:command %)) commands))) 0)
+        rows (mapv #(select-keys % [:command :description]) commands)
+        flat-commands (vec (mapcat vals rows))
+        format-string (str "~{~" (+ padding 5) "A~A~%~}")]
+    (println flat-commands)
+    (if (> (count flat-commands) 1)
+      (clojure.string/split-lines (clojure.pprint/cl-format nil format-string flat-commands))
+      (clojure.string/split-lines (clojure.pprint/cl-format nil "~{~A~%~}"  flat-commands))
+      )))
 
 (s/fdef
   generate-global-command-list
   :args (s/cat :commands ::S/subcommands)
-  :ret  (s/coll-of string?))
+  :ret (s/coll-of string?))
 
 (defn generate-global-help
   "This is where we generate global help, so
@@ -151,20 +160,19 @@
 
   (let [cmd-cfg (U2/walk cfg path)
         name (U2/canonical-path-to-string
-              (U2/as-canonical-path
-               cmd-cfg))
+               (U2/as-canonical-path
+                 cmd-cfg))
         version (U2/get-most-specific-value cfg path :version "-")
         descr (U2/get-most-specific-value cfg path :description [])
         [desc0 descr-extra] (get-first-rest-description-rows descr)
         this-cmd (last cmd-cfg)]
-
     (generate-sections
-     [(str name " - " desc0) descr-extra]
-     version
-     (str name " [global-options] command [command options] [arguments...]")
-     (generate-global-command-list (:subcommands this-cmd))
-     "GLOBAL OPTIONS" (get-options-summary cfg path)
-     (:examples this-cmd))))
+      [(str name " - " desc0) descr-extra]
+      version
+      (str name " [global-options] command [command options] [arguments...]")
+      (generate-global-command-list (:subcommands this-cmd))
+      "GLOBAL OPTIONS" (get-options-summary cfg path)
+      (:examples this-cmd))))
 
 (s/fdef
   generate-global-help
@@ -202,13 +210,13 @@
         arglist (arg-list-with-positional-entries cfg cmd)]
 
     (generate-sections
-     [(str fullname " - " desc0) descr-extra]
-     version-or-nil
-     (str fullname-but-last " " name-short " [command options] " arglist)
-     nil
-     "OPTIONS"
-     (get-options-summary cfg cmd)
-     (:examples this-cmd))))
+      [(str fullname " - " desc0) descr-extra]
+      version-or-nil
+      (str fullname-but-last " " name-short " [command options] " arglist)
+      nil
+      "OPTIONS"
+      (get-options-summary cfg cmd)
+      (:examples this-cmd))))
 
 (s/fdef
   generate-subcmd-help
