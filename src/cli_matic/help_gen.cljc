@@ -135,7 +135,6 @@
         rows (mapv #(select-keys % [:command :description]) commands)
         flat-commands (vec (mapcat vals rows))
         format-string (str "~{~" (+ padding 5) "A~A~%~}")]
-    (println flat-commands)
     (if (> (count flat-commands) 1)
       (clojure.string/split-lines (clojure.pprint/cl-format nil format-string flat-commands))
       (clojure.string/split-lines (clojure.pprint/cl-format nil "~{~A~%~}"  flat-commands))
