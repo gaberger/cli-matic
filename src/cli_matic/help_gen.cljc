@@ -135,15 +135,13 @@
         rows (mapv #(select-keys % [:command :description]) commands)
         flat-commands (vec (mapcat vals rows))
         format-string (str "~{~" (+ padding 5) "A~A~%~}")]
-    (if (> (count flat-commands) 1)
       (clojure.string/split-lines (clojure.pprint/cl-format nil format-string flat-commands))
-      (clojure.string/split-lines (clojure.pprint/cl-format nil "~{~A~%~}"  flat-commands))
-      )))
+      ))
 
-(s/fdef
-  generate-global-command-list
-  :args (s/cat :commands ::S/subcommands)
-  :ret (s/coll-of string?))
+;(s/fdef
+;  generate-global-command-list
+;  :args (s/cat :commands ::S/subcommands)
+;  :ret (s/coll-of string?))
 
 (defn generate-global-help
   "This is where we generate global help, so

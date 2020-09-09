@@ -120,6 +120,17 @@
                                                 :default 0
                                                 :option  "b"
                                                 :type    :int}]
+                                 :runs        dummy-cmd}
+                                {:command     "div"
+                                 :description "Divide"
+                                 :opts        [{:as      "Parameter A to divide from"
+                                                :default 0
+                                                :option  "d"
+                                                :type    :int}
+                                               {:as      "Parameter d"
+                                                :default 0
+                                                :option  "b"
+                                                :type    :int}]
                                  :runs        dummy-cmd}]}]})
 
 (deftest generate-global-help-test
@@ -201,12 +212,34 @@
         ""
         "COMMANDS:"
         " sub     Subtracts"
+        " div     Divide"
         ""
         "GLOBAL OPTIONS:"
         "       --q N   0  Parameter q"
         "   -?, --help"
         ""]
-       (generate-global-help CONFIGURATION-TOYCALC-NESTED ["toycalc" "subc"]))))
+       (generate-global-help CONFIGURATION-TOYCALC-NESTED ["toycalc" "subc"])))
+
+  (is
+    (=["NAME:"
+       " toycalc subc div - Divide"
+       ""
+       "USAGE:"
+       " toycalc subc div [global-options] command [command options] [arguments...]"
+       ""
+       "VERSION:"
+       " 1.2.3"
+       ""
+       "COMMANDS:"
+       " "
+       ""
+       "GLOBAL OPTIONS:"
+       "       --d N   0  Parameter A to divide from"
+       "       --b N   0  Parameter d"
+       "   -?, --help"
+       ""]
+       (generate-global-help CONFIGURATION-TOYCALC-NESTED ["toycalc" "subc" "div"])))
+  )
 
 (deftest generate-subcmd-help-test-nested
   (is
@@ -228,7 +261,41 @@
         "       --b N   0  Addendum 2"
         "   -?, --help"
         ""]
-       (generate-subcmd-help CONFIGURATION-TOYCALC-NESTED ["toycalc" "add"]))))
+       (generate-subcmd-help CONFIGURATION-TOYCALC-NESTED ["toycalc" "add"])))
+  (is
+    (= ["NAME:"
+        " toycalc subc div - Divide"
+        ""
+        "USAGE:"
+        " toycalc subc div [command options] [arguments...]"
+        ""
+        "OPTIONS:"
+        "       --d N   0  Parameter A to divide from"
+        "       --b N   0  Parameter d"
+        "   -?, --help"
+        ""]
+       (generate-subcmd-help CONFIGURATION-TOYCALC-NESTED ["toycalc" "subc" "div"])))
+
+  (is
+    (= ["NAME:"
+        " toycalc subc - Subtracts parameter B from A"
+        ""
+        "USAGE:"
+        " toycalc subc [command options] [arguments...]"
+        ""
+        "EXAMPLES:"
+        " Just one example"
+        ""
+        "VERSION:"
+        " 1.2.3"
+        ""
+        "OPTIONS:"
+        "       --q N   0  Parameter q"
+        "   -?, --help"
+        ""]
+       (generate-subcmd-help CONFIGURATION-TOYCALC-NESTED ["toycalc" "subc"])))
+
+  )
 
 (deftest generate-subcmd-help-test
 
@@ -518,3 +585,47 @@
       "   -?, --help"
       ""]
      (generate-global-help CONFIGURATION-TOYCALC-v2 ["toycalc"])))
+
+(deftest test-cl-format-4
+  (is (= ["NAME:"
+          " toycalc - A command-line toy calculator"
+          ""
+          "USAGE:"
+          " toycalc [global-options] command [command options] [arguments...]"
+          ""
+          "VERSION:"
+          " 0.0.1"
+          ""
+          "COMMANDS:"
+          " add      Adds two numbers together"
+          " subc     Subtracts parameter B from A"
+          ""
+          "GLOBAL OPTIONS:"
+          "       --base N  10  The number base for output"
+          "   -?, --help"
+          ""]
+     (generate-global-help CONFIGURATION-TOYCALC-NESTED ["toycalc" ]))))
+
+(deftest test-cl-format-5
+  (is (= ["NAME:"
+          " toycalc add - Adds two numbers together"
+          ""
+          "USAGE:"
+          " toycalc add [global-options] command [command options] [arguments...]"
+          ""
+          "EXAMPLES:"
+          " Example One"
+          " Example Two"
+          ""
+          "VERSION:"
+          " 3.3.3"
+          ""
+          "COMMANDS:"
+          " "
+          ""
+          "GLOBAL OPTIONS:"
+          "       --a N      Addendum 1"
+          "       --b N   0  Addendum 2"
+          "   -?, --help"
+          ""]
+         (generate-global-help CONFIGURATION-TOYCALC-NESTED ["toycalc" "add"]))))
